@@ -90,6 +90,26 @@ app.get('/', (req, res) => {
   res.send('API Marido de Aluguel está online!');
 });
 
+// Rota Especial para o Profissional (Vê tudo)
+app.get('/todos-os-chamados', async (req, res) => {
+ 
+  
+  const user = await getUserByToken(req);
+  if (!user) return res.status(401).json({ error: 'Não autorizado.' });
+
+  // TRUQUE: Verifica se é o email do chefe
+  if (user.email !== 'admin@marido.com') {
+      return res.status(403).json({ error: 'Acesso restrito ao profissional.' });
+  }
+
+  const { data, error } = await supabase
+    .from('chamados')
+    .select('*') 
+    .order('created_at', { ascending: false });
+    
+  if (error) return res.status(500).json({ error: error.message });
+  res.status(200).json(data);
+});
 
 // --- INICIALIZAÇÃO DO SERVIDOR ---
 const PORT = process.env.PORT || 3000;
