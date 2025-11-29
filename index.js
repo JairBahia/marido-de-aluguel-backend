@@ -1,5 +1,3 @@
-// index.js
-
 // --- CONFIGURAÇÃO E CONEXÃO ---
 require('dotenv').config(); 
 const express = require('express');
@@ -14,7 +12,7 @@ const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY
 app.use(cors()); 
 app.use(express.json()); 
 
-// --- FUNÇÃO AUXILIAR DE SEGURANÇA (Porteiro) ---
+// --- FUNÇÃO DE SEGURANÇA ---
 async function getUserByToken(req) {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) return null;
@@ -24,7 +22,7 @@ async function getUserByToken(req) {
   return user; 
 }
 
-// --- ROTAS DE AUTENTICAÇÃO (RF01/RF02) ---
+// --- ROTAS DE AUTENTICAÇÃO ---
 app.post('/cadastro', async (req, res) => {
   const { nome, email, senha } = req.body;
   const { data, error } = await supabase.auth.signUp({
@@ -43,9 +41,8 @@ app.post('/login', async (req, res) => {
   res.status(200).json({ data: data });
 });
 
-// --- ROTAS DE CRUD (RF03/RF04) ---
 
-// CREATE
+// CRIAÇÃO DE CHAMADOS
 app.post('/chamados', async (req, res) => {
   const user = await getUserByToken(req);
   if (!user) return res.status(401).json({ error: 'Não autorizado.' });
@@ -58,7 +55,7 @@ app.post('/chamados', async (req, res) => {
   res.status(201).json(data[0]);
 });
 
-// READ (Listar meus chamados)
+// Listar meus chamados
 app.get('/chamados', async (req, res) => {
   const user = await getUserByToken(req);
   if (!user) return res.status(401).json({ error: 'Não autorizado.' });
@@ -90,14 +87,14 @@ app.get('/', (req, res) => {
   res.send('API Marido de Aluguel está online!');
 });
 
-// Rota Especial para o Profissional (Vê tudo)
+// Rota Especial para o Profissional
 app.get('/todos-os-chamados', async (req, res) => {
  
   
   const user = await getUserByToken(req);
   if (!user) return res.status(401).json({ error: 'Não autorizado.' });
 
-  // TRUQUE: Verifica se é o email do chefe
+  // Verifica se é o email do chefe
   if (user.email !== 'admin@marido.com') {
       return res.status(403).json({ error: 'Acesso restrito ao profissional.' });
   }
